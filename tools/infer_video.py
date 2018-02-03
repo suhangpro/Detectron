@@ -171,8 +171,8 @@ def infer_folder(video_or_folder, model, output_dir,
         video_height = cap.get(4)  # CAP_PROP_FRAME_HEIGHT = 4
         video_fps = cap.get(5)  # CAP_PROP_FPS = 5
         video_total_frames = cap.get(7)  # CAP_PROP_FRAME_COUNT = 7
-        stride = round(float(video_fps) / infer_sample_fps) if infer_sample_fps > 0 else 1
-        frame_id = infer_sample_offset
+        stride = int(round(float(video_fps) / infer_sample_fps)) if infer_sample_fps > 0 else 1
+        frame_id = int(infer_sample_offset)
         while True:
             try:
                 cap.set(1, frame_id)  # CAP_PROP_POS_FRAMES = 1
