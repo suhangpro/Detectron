@@ -51,4 +51,4 @@ RUN sed -i -e 's/python2/python/g' Makefile && \
 
 # entrypoint
 WORKDIR /Matterport3DSimulator
-CMD ["python", "src/driver/driver.py"]
+CMD ["python", "/detectron/tools/infer_matterport3d.py"]
