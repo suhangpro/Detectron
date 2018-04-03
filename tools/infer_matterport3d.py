@@ -77,7 +77,7 @@ def parse_args():
     parser.add_argument('--elevation-mode', default='lock', choices=('auto', 'free', 'lock'))
     parser.add_argument('--room', default='17DRP5sb8fy', type=str)
     parser.add_argument('--start', default='902e65564f81489687878425d9b3cb55', type=str)
-    parser.add_argument('--output', default='/tmp/matterport-output', type=str)
+    parser.add_argument('--output-dir', default='/tmp/infer_matterport', type=str)
     return parser.parse_args()
 
 

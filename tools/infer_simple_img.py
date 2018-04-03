@@ -61,20 +61,20 @@ def parse_args():
         '--cfg',
         dest='cfg',
         help='cfg model file (/path/to/model_config.yaml)',
-        default=None,
+        default=os.path.join(os.path.dirname(os.path.realpath(__file__)), '..', 'configs/12_2017_baselines/e2e_mask_rcnn_R-101-FPN_2x.yaml'),
         type=str
     )
     parser.add_argument(
         '--wts',
         dest='weights',
         help='weights model file (/path/to/model_weights.pkl)',
-        default=None,
+        default='https://s3-us-west-2.amazonaws.com/detectron/35861858/12_2017_baselines/e2e_mask_rcnn_R-101-FPN_2x.yaml.02_32_51.SgT4y1cO/output/train/coco_2014_train:coco_2014_valminusminival/generalized_rcnn/model_final.pkl',
         type=str
     )
     parser.add_argument(
         '--output-dir',
         dest='output_dir',
-        help='directory for visualization pdfs (default: /tmp/infer_simple)',
+        help='directory for visualization outputs (default: /tmp/infer_simple)',
         default='/tmp/infer_simple',
         type=str
     )
@@ -113,7 +113,7 @@ def main(args):
 
     for i, im_name in enumerate(im_list):
         out_name = os.path.join(
-            args.output_dir, '{}'.format(os.path.basename(im_name) + '.png')
+            args.output_dir, '{}.{}'.format(os.path.basename(im_name), args.image_ext)
         )
         logger.info('Processing {} -> {}'.format(im_name, out_name))
         im = cv2.imread(im_name)
@@ -144,7 +144,7 @@ def main(args):
             thresh=0.7,
             kp_thresh=2
             )
-        scipy.misc.imsave(out_name, im)
+        cv2.imwrite(out_name, im[:, :, ::-1])
 
 
 if __name__ == '__main__':

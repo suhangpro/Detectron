@@ -31,4 +31,5 @@ RUN make ops
 
 # entrypoint
 WORKDIR /detectron
-CMD ["/bin/bash"]
+ENTRYPOINT ["python", "tools/infer_simple_img.py"]
+CMD ["demo"]

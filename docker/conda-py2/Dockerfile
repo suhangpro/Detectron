@@ -41,4 +41,5 @@ RUN sed -i -e 's/python2/python/g' Makefile && \
 
 # entrypoint
 WORKDIR /detectron
-CMD ["/bin/bash"]
+ENTRYPOINT ["python", "tools/infer_simple_img.py"]
+CMD ["demo"]
