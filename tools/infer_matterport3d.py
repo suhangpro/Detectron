@@ -13,6 +13,7 @@ import sys
 import time
 import math
 import random
+import json
 
 import numpy as np
 import scipy.misc
@@ -47,8 +48,10 @@ def list_rooms(data_root=DATA_ROOT):
 
 
 def list_viewpoints(room, data_root=DATA_ROOT):
-    dir_viewpoints = os.path.join(data_root, 'v1', 'scans', room, 'matterport_skybox_images')
-    return list(set([s.split('_')[0] for s in os.listdir(dir_viewpoints) if s.endswith('.jpg')]))
+    # dir_viewpoints = os.path.join(data_root, 'v1', 'scans', room, 'matterport_skybox_images')
+    # return list(set([s.split('_')[0] for s in os.listdir(dir_viewpoints) if s.endswith('.jpg')]))
+    room_meta = json.load(open(os.path.join('connectivity', '{}_connectivity.json'.format(room)), 'r'))
+    return [str(v['image_id']) for v in room_meta if v['included']]
 
 
 def parse_args():
@@ -70,6 +73,8 @@ def parse_args():
     parser.add_argument('--width', default=640, type=int)
     parser.add_argument('--height', default=480, type=int)
     parser.add_argument('--vfov', default=60, type=int)
+    parser.add_argument('--heading-mode', default='auto', choices=('auto','free'))
+    parser.add_argument('--elevation-mode', default='lock', choices=('auto', 'free', 'lock'))
     parser.add_argument('-room', default='17DRP5sb8fy', type=str)
     parser.add_argument('-start', default='902e65564f81489687878425d9b3cb55', type=str)
     return parser.parse_args()
@@ -84,7 +89,7 @@ def main(args):
     sim = MatterSim.Simulator()
     sim.setCameraResolution(width, height)
     sim.setCameraVFOV(vfov)
-    sim.setDiscretizedViewingAngles(True)
+    sim.setDiscretizedViewingAngles(False)
     sim.init()
     # sim.newEpisode('2t7WUuJeko7', '1e6b606b44df4a6086c0f97e826d4d15', 0, 0)
     # sim.newEpisode('17DRP5sb8fy', '902e65564f81489687878425d9b3cb55', 0, 0)
@@ -110,7 +115,8 @@ def main(args):
     model = infer_engine.initialize_model_from_cfg(args.weights)
     dummy_coco_dataset = dummy_datasets.get_coco_dataset()
 
-    angle_delta = 5 * math.pi / 180
+    angle_delta_lg = 30 * math.pi / 180
+    angle_delta_sm = 5 * math.pi / 180
 
     while True:
         location = 0
@@ -120,8 +126,8 @@ def main(args):
         locations = state.navigableLocations
         loc = locations[0]
         bgr = state.rgb
-        logger.info('Position: {} - {} ([{},{},{}])'.format(roomId, loc.viewpointId,
-                                                            loc.point[0], loc.point[1], loc.point[2]))
+        logger.info('Pose: {} - {} ({},{},{}) - {}/{}'.format(
+            roomId, loc.viewpointId, loc.point[0], loc.point[1], loc.point[2], state.heading, state.elevation))
         timers = defaultdict(Timer)
         t = time.time()
 
@@ -160,21 +166,40 @@ def main(args):
             location = k - ord('0')
             if location >= len(locations):
                 location = 0
-        elif k == 81 or k == ord('a'):
-            heading = -angle_delta
-        elif k == 82 or k == ord('w'):
-             elevation = angle_delta
-        elif k == 83 or k == ord('d'):
-             heading = angle_delta
-        elif k == 84 or k == ord('s'):
-             elevation = -angle_delta
+            else:
+                if args.heading_mode == 'auto':
+                    heading = locations[location].rel_heading
+                if args.elevation_mode == 'auto':
+                    elevation = locations[location].rel_elevation
+                elif args.elevation_mode == 'lock':
+                    elevation = - state.elevation
+        elif k == 81:
+            heading = -angle_delta_lg
+        elif k == 82:
+             elevation = angle_delta_lg
+        elif k == 83:
+             heading = angle_delta_lg
+        elif k == 84:
+             elevation = -angle_delta_lg
+        elif k == ord('a'):
+            heading = -angle_delta_sm
+        elif k == ord('w'):
+             elevation = angle_delta_sm
+        elif k == ord('d'):
+             heading = angle_delta_sm
+        elif k == ord('s'):
+             elevation = -angle_delta_sm
+        elif k == ord('b'):
+            heading = math.pi
         elif k == ord('n'):
             roomId = random.sample(rooms.difference({roomId}), 1)[0]
             viewId = random.sample(list_viewpoints(roomId), 1)[0]
             sim.newEpisode(roomId, viewId, 0, 0)
+            continue
         elif k == ord('r'):
             viewId = random.sample(list_viewpoints(roomId), 1)[0]
             sim.newEpisode(roomId, viewId, 0, 0)
+            continue
 
         sim.makeAction(location, heading, elevation)
 
