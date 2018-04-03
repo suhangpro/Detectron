@@ -75,8 +75,9 @@ def parse_args():
     parser.add_argument('--vfov', default=60, type=int)
     parser.add_argument('--heading-mode', default='auto', choices=('auto','free'))
     parser.add_argument('--elevation-mode', default='lock', choices=('auto', 'free', 'lock'))
-    parser.add_argument('-room', default='17DRP5sb8fy', type=str)
-    parser.add_argument('-start', default='902e65564f81489687878425d9b3cb55', type=str)
+    parser.add_argument('--room', default='17DRP5sb8fy', type=str)
+    parser.add_argument('--start', default='902e65564f81489687878425d9b3cb55', type=str)
+    parser.add_argument('--output', default='/tmp/matterport-output', type=str)
     return parser.parse_args()
 
 
@@ -151,14 +152,15 @@ def main(args):
             kp_thresh=2
         )
 
+        im_with_directions = im.copy()
         for idx, loc in enumerate(locations[1:]):
             # Draw actions on the screen
             fontScale = 3.0/loc.rel_distance
             x = int(width/2 + loc.rel_heading / hfov * width)
             y = int(height/2 - loc.rel_elevation / vfov * height)
-            cv2.putText(im, str(idx + 1), (x, y), cv2.FONT_HERSHEY_SIMPLEX, 
+            cv2.putText(im_with_directions, str(idx + 1), (x, y), cv2.FONT_HERSHEY_SIMPLEX,
                 fontScale, direction_text_color, thickness=3)
-        cv2.imshow('Matterport3D', im)
+        cv2.imshow('Matterport3D', im_with_directions)
         k = cv2.waitKey(0)
         if k == ord('q'):
             break
@@ -191,6 +193,11 @@ def main(args):
              elevation = -angle_delta_sm
         elif k == ord('b'):
             heading = math.pi
+        elif k == ord('p'):
+            if not os.path.isdir(args.output):
+                os.makedirs(args.output)
+            cv2.imwrite(os.path.join(args.output, '{}_{}_{}_{}_{}.jpg'.format(
+                roomId, viewId, state.heading, state.elevation, args.vfov)), im)
         elif k == ord('n'):
             roomId = random.sample(rooms.difference({roomId}), 1)[0]
             viewId = random.sample(list_viewpoints(roomId), 1)[0]

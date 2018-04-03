@@ -132,9 +132,9 @@ def main(args):
                 'rest (caches and auto-tuning need to warm up)'
             )
 
-	im = im[:, :, ::-1].astype(np.uint8).copy()  # BGR->RGB
+        im = im[:, :, ::-1].astype(np.uint8).copy()  # BGR->RGB
         im = vis_utils.vis_one_image_opencv(
-            im, 
+            im,
             cls_boxes,
             cls_segms,
             cls_keyps,
@@ -143,7 +143,7 @@ def main(args):
             show_box=True,
             thresh=0.7,
             kp_thresh=2
-        )
+            )
         scipy.misc.imsave(out_name, im)
 
 
