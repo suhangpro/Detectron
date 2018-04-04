@@ -1,7 +1,7 @@
 # use Caffe2 image as parent image
 FROM caffe2/caffe2:snapshot-py2-cuda9.0-cudnn7-ubuntu16.04
 
-# apt-get 
+# dependencies (apt-get)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg wget vim 
 
