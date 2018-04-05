@@ -194,10 +194,15 @@ def main(args):
         elif k == ord('b'):
             heading = math.pi
         elif k == ord('p'):
-            if not os.path.isdir(args.output):
-                os.makedirs(args.output)
-            cv2.imwrite(os.path.join(args.output, '{}_{}_{}_{}_{}.jpg'.format(
+            if not os.path.isdir(args.output_dir):
+                os.makedirs(args.output_dir)
+            cv2.imwrite(os.path.join(args.output_dir, '{}_{}_{}_{}_{}.jpg'.format(
                 roomId, viewId, state.heading, state.elevation, args.vfov)), im)
+        elif k == ord('o'):
+            if not os.path.isdir(args.output_dir):
+                os.makedirs(args.output_dir)
+            cv2.imwrite(os.path.join(args.output_dir, '{}_{}_{}_{}_{}_raw.jpg'.format(
+                roomId, viewId, state.heading, state.elevation, args.vfov)), bgr)
         elif k == ord('n'):
             roomId = random.sample(rooms.difference({roomId}), 1)[0]
             viewId = random.sample(list_viewpoints(roomId), 1)[0]
