@@ -76,7 +76,7 @@ def parse_args():
     parser.add_argument('--heading-mode', default='auto', choices=('auto','free'))
     parser.add_argument('--elevation-mode', default='lock', choices=('auto', 'free', 'lock'))
     parser.add_argument('--room', default='17DRP5sb8fy', type=str)
-    parser.add_argument('--start', default='902e65564f81489687878425d9b3cb55', type=str)
+    parser.add_argument('--start', default='', type=str)
     parser.add_argument('--output-dir', default='/tmp/infer_matterport', type=str)
     return parser.parse_args()
 
@@ -96,6 +96,8 @@ def main(args):
     # sim.newEpisode('17DRP5sb8fy', '902e65564f81489687878425d9b3cb55', 0, 0)
 
     roomId, viewId = args.room, args.start
+    if viewId == '':
+        viewId = random.sample(list_viewpoints(roomId), 1)[0]
     sim.newEpisode(roomId, viewId, 0, 0)
     rooms = set(list_rooms())
 
@@ -118,6 +120,7 @@ def main(args):
 
     angle_delta_lg = 30 * math.pi / 180
     angle_delta_sm = 5 * math.pi / 180
+    angle_delta_xs = 1 * math.pi / 180
 
     while True:
         location = 0
@@ -126,9 +129,10 @@ def main(args):
         state = sim.getState()
         locations = state.navigableLocations
         loc = locations[0]
+        viewId = loc.viewpointId
         bgr = state.rgb
         logger.info('Pose: {} - {} ({},{},{}) - {}/{}'.format(
-            roomId, loc.viewpointId, loc.point[0], loc.point[1], loc.point[2], state.heading, state.elevation))
+            roomId, viewId, loc.point[0], loc.point[1], loc.point[2], state.heading, state.elevation))
         timers = defaultdict(Timer)
         t = time.time()
 
@@ -191,6 +195,14 @@ def main(args):
              heading = angle_delta_sm
         elif k == ord('s'):
              elevation = -angle_delta_sm
+        elif k == ord('j'):
+            heading = -angle_delta_xs
+        elif k == ord('i'):
+             elevation = angle_delta_xs
+        elif k == ord('l'):
+             heading = angle_delta_xs
+        elif k == ord('k'):
+             elevation = -angle_delta_xs
         elif k == ord('b'):
             heading = math.pi
         elif k == ord('p'):
