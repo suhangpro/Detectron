@@ -81,8 +81,8 @@ def parse_args():
     parser.add_argument(
         '--image-ext',
         dest='image_ext',
-        help='image file name extension (default: jpg)',
-        default='jpg',
+        help='image file name extension (default: jpg|png)',
+        default='jpg|png',
         type=str
     )
     parser.add_argument(
@@ -104,7 +104,9 @@ def main(args):
     dummy_coco_dataset = dummy_datasets.get_coco_dataset()
 
     if os.path.isdir(args.im_or_folder):
-        im_list = glob.iglob(args.im_or_folder + '/*.' + args.image_ext)
+        im_list = []
+        for image_ext in args.image_ext.split('|'):
+            im_list += glob.iglob(args.im_or_folder + '/*.' + image_ext)
     else:
         im_list = [args.im_or_folder]
 
@@ -112,8 +114,9 @@ def main(args):
         os.makedirs(args.output_dir)
 
     for i, im_name in enumerate(im_list):
+        image_ext = os.path.basename(im_name).split('.')[-1]
         out_name = os.path.join(
-            args.output_dir, '{}.{}'.format(os.path.basename(im_name), args.image_ext)
+            args.output_dir, '{}_detections.{}'.format(os.path.basename(im_name)[:(-1 - len(image_ext))], image_ext)
         )
         logger.info('Processing {} -> {}'.format(im_name, out_name))
         im = cv2.imread(im_name)
